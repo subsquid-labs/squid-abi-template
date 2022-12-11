@@ -1,0 +1,33 @@
+{
+  "name": "squid-evm-template",
+  "private": true,
+  "scripts": {
+    "build": "rm -rf lib && tsc",
+    "update": "npm-check-updates --filter /subsquid/ --upgrade && npm i -f",
+    "db:migrate": "squid-typeorm-migration apply",
+    "squid-etl:start": "node lib/processor.js",
+    "squid-api:start": "squid-graphql-server",
+    "generate": "node bin/generate.js"
+  },
+  "dependencies": {
+    "@subsquid/evm-processor": "^0.2.2",
+    "@subsquid/graphql-server": "3.2.4",
+    "@subsquid/typeorm-migration": "0.1.4",
+    "@subsquid/typeorm-store": "0.1.5",
+    "@subsquid/util-internal-json": "^0.2.0",
+    "dotenv": "^16.0.0",
+    "ethers": "^5.6.4",
+    "pg": "^8.7.3",
+    "typeorm": "^0.3.6"
+  },
+  "devDependencies": {
+    "@subsquid/evm-typegen": "2.0.1",
+    "@subsquid/typeorm-codegen": "0.3.1",
+    "@subsquid/util-internal": "^1.0.0",
+    "@subsquid/util-internal-code-printer": "^0.1.0",
+    "@subsquid/util-internal-commander": "^0.0.1",
+    "@types/node": "^17.0.23",
+    "commander": "^9.3.0",
+    "typescript": "~4.6.2"
+  }
+}
