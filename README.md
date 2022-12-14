@@ -4,4 +4,7 @@ npm run generate -- \
 --archive https://eth.archive.subsquid.io \
 --event NewGravatar \
 --transaction createGravatar
+--from 10_000_000
 ```
+
+``--event *`` and ``--function *`` will generate all items
