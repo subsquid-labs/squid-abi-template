@@ -1,7 +1,9 @@
 import {runProgram} from '@subsquid/util-internal'
 import {FileOutput} from '@subsquid/util-internal-code-printer'
+import assert from 'assert'
 import {execSync} from 'child_process'
 import {program} from 'commander'
+import {register, create} from 'ts-node'
 
 runProgram(async function () {
     program
@@ -9,7 +11,8 @@ runProgram(async function () {
         .requiredOption(`--archive <url>`)
         .option(`--abi <path>`)
         .option(`--event <name...>`)
-        .option(`--transaction <name...>`)
+        .option(`--function <name...>`)
+        .option(`--from <block>`)
         .option(`--etherscan-api <url>`, `etherscan API to fetch contract ABI by a known address`)
 
     program.parse()
@@ -19,12 +22,12 @@ runProgram(async function () {
         archive: string
         abi: string
         event?: string[]
-        transaction?: string[]
+        function?: string[]
+        from?: string
         etherscanApi?: string
     }
 
     let abiName = opts.abi || opts.address
-
     execSync(
         [
             `npx squid-evm-typegen ./src/abi`,
@@ -34,6 +37,25 @@ runProgram(async function () {
         ].join(``),
         {stdio: `inherit`}
     )
+
+    let abi = require(`../src/abi/${abiName}.ts`)
+    let events = opts.event
+        ? opts.event.includes('*')
+            ? Object.keys(abi.events)
+            : opts.event.map((e) => {
+                  assert(abi.events[e] != null)
+                  return e
+              })
+        : undefined
+    let functions = opts.function
+        ? opts.function.includes('*')
+            ? Object.keys(abi.functions)
+            : opts.function.map((f) => {
+                  assert(abi.functions[f] != null)
+                  return f
+              })
+        : undefined
+    assert(events || functions)
 
     let out = new FileOutput(`./src/processor.ts`)
 
@@ -53,15 +75,26 @@ runProgram(async function () {
         })
         out.line(`})`)
 
-        if (opts.event) {
+        if (opts.from != null) {
+            let from = parseInt(opts.from)
+            assert(Number.isSafeInteger(from))
+            assert(from >= 0)
+            out.line(`.setBlockRange({`)
+            out.indentation(() => {
+                out.line(`from: ${opts.from}`)
+            })
+            out.line(`})`)
+        }
+
+        if (events) {
             out.line(`.addLog('${opts.address.toLowerCase()}', {`)
             out.indentation(() => {
                 out.line(`filter: [`)
                 out.indentation(() => {
                     out.line(`[`)
                     out.indentation(() => {
-                        for (let e of opts.event || []) {
-                            out.line(`abi.events['${e}'].topic`)
+                        for (let e of events || []) {
+                            out.line(`abi.events['${e}'].topic,`)
                         }
                     })
                     out.line(`],`)
@@ -81,13 +114,13 @@ runProgram(async function () {
             out.line(`})`)
         }
 
-        if (opts.transaction) {
+        if (functions) {
             out.line(`.addTransaction('${opts.address.toLowerCase()}', {`)
             out.indentation(() => {
                 out.line(`sighash: [`)
                 out.indentation(() => {
-                    for (let t of opts.transaction || []) {
-                        out.line(`abi.functions['${t}'].sighash`)
+                    for (let t of functions || []) {
+                        out.line(`abi.functions['${t}'].sighash,`)
                     }
                 })
                 out.line(`],`)
@@ -108,8 +141,8 @@ runProgram(async function () {
     out.line()
     out.line(`processor.run(new TypeormDatabase(), async (ctx) => {`)
     out.indentation(() => {
-        if (opts.event) out.line(`let events: EvmEvent[] = []`)
-        if (opts.transaction) out.line(`let transactions: EvmTransaction[] = []`)
+        if (events) out.line(`let events: EvmEvent[] = []`)
+        if (functions) out.line(`let transactions: EvmTransaction[] = []`)
 
         out.line(`for (let block of ctx.blocks) {`)
         out.indentation(() => {
@@ -126,7 +159,7 @@ runProgram(async function () {
                         })
                         out.line(`}`)
                     }
-                    if (opts.transaction) {
+                    if (functions) {
                         out.line(`case 'transaction': {`)
                         out.indentation(() => {
                             out.line(`let t = parseTransaction(ctx, block.header, item)`)
@@ -141,20 +174,20 @@ runProgram(async function () {
             out.line(`}`)
         })
         out.line(`}`)
-        if (opts.event) out.line(`await ctx.store.save(events)`)
-        if (opts.transaction) out.line(`await ctx.store.save(transactions)`)
+        if (events) out.line(`await ctx.store.save(events)`)
+        if (functions) out.line(`await ctx.store.save(transactions)`)
     })
     out.line(`})`)
     out.line()
     out.line(`type Item = BatchProcessorItem<typeof processor>`)
     out.line(`type Context = BatchHandlerContext<Store, Item>`)
     out.line()
-    if (opts.event) {
+    if (events) {
         out.line(`function parseEvmLog(ctx: Context, block: EvmBlock, item: BatchProcessorLogItem<typeof processor>) {`)
         out.indentation(() => {
             out.line(`switch (item.evmLog.topics[0]) {`)
             out.indentation(() => {
-                for (let e of opts.event || []) {
+                for (let e of events || []) {
                     out.line(`case abi.events['${e}'].topic:`)
                     out.indentation(() => {
                         out.line(`return new EvmEvent({`)
@@ -173,14 +206,14 @@ runProgram(async function () {
         out.line(`}`)
     }
     out.line()
-    if (opts.transaction) {
+    if (functions) {
         out.line(
             `function parseTransaction(ctx: Context, block: EvmBlock, item: BatchProcessorTransactionItem<typeof processor>) {`
         )
         out.indentation(() => {
             out.line(`switch (item.transaction.input.slice(0, 10)) {`)
             out.indentation(() => {
-                for (let t of opts.transaction || []) {
+                for (let t of functions || []) {
                     out.line(`case abi.functions['${t}'].sighash:`)
                     out.indentation(() => {
                         out.line(`return new EvmTransaction({`)
