@@ -7,7 +7,7 @@
     "db:migrate": "squid-typeorm-migration apply",
     "squid-etl:start": "node lib/processor.js",
     "squid-api:start": "squid-graphql-server",
-    "generate": "node bin/generate.js"
+    "generate": "node generate/run.js"
   },
   "dependencies": {
     "@subsquid/evm-processor": "^0.2.2",
