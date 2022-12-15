@@ -1,14 +1,14 @@
 type EvmEvent @entity {
     id: ID!
     block: Int!
-    name: String!
+    name: String! @index
     params: JSON!
 }
 
-type EvmTransaction @entity {
+type EvmFunction @entity {
     id: ID!
     block: Int!
-    hash: String!
-    name: String!
+    txHash: String!
+    name: String! @index
     params: JSON!
 }

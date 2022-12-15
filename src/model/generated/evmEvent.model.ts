@@ -1,4 +1,4 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_} from "typeorm"
 
 @Entity_()
 export class EvmEvent {
@@ -12,6 +12,7 @@ export class EvmEvent {
     @Column_("int4", {nullable: false})
     block!: number
 
+    @Index_()
     @Column_("text", {nullable: false})
     name!: string
 

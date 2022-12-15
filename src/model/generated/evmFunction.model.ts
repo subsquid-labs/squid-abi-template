@@ -1,8 +1,8 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_} from "typeorm"
 
 @Entity_()
-export class EvmTransaction {
-    constructor(props?: Partial<EvmTransaction>) {
+export class EvmFunction {
+    constructor(props?: Partial<EvmFunction>) {
         Object.assign(this, props)
     }
 
@@ -13,8 +13,9 @@ export class EvmTransaction {
     block!: number
 
     @Column_("text", {nullable: false})
-    hash!: string
+    txHash!: string
 
+    @Index_()
     @Column_("text", {nullable: false})
     name!: string
 
