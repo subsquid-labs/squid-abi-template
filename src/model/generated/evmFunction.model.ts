@@ -1,4 +1,6 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_, OneToOne as OneToOne_, JoinColumn as JoinColumn_} from "typeorm"
+import {Block} from "./block.model"
+import {Transaction} from "./transaction.model"
 
 @Entity_()
 export class EvmFunction {
@@ -9,11 +11,14 @@ export class EvmFunction {
     @PrimaryColumn_()
     id!: string
 
-    @Column_("int4", {nullable: false})
-    block!: number
+    @Index_()
+    @ManyToOne_(() => Block, {nullable: true})
+    block!: Block
 
-    @Column_("text", {nullable: false})
-    txHash!: string
+    @Index_({unique: true})
+    @OneToOne_(() => Transaction, {nullable: false})
+    @JoinColumn_()
+    transaction!: Transaction
 
     @Index_()
     @Column_("text", {nullable: false})

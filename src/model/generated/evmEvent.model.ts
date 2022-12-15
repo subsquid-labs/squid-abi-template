@@ -1,4 +1,6 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
+import {Block} from "./block.model"
+import {Transaction} from "./transaction.model"
 
 @Entity_()
 export class EvmEvent {
@@ -9,8 +11,13 @@ export class EvmEvent {
     @PrimaryColumn_()
     id!: string
 
-    @Column_("int4", {nullable: false})
-    block!: number
+    @Index_()
+    @ManyToOne_(() => Block, {nullable: true})
+    block!: Block
+
+    @Index_()
+    @ManyToOne_(() => Transaction, {nullable: true})
+    transaction!: Transaction
 
     @Index_()
     @Column_("text", {nullable: false})
