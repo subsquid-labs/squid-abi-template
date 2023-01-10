@@ -44,6 +44,8 @@ In a separate window, start the GraphQL API server at `localhost:4350/graphql`:
 make serve
 ```
 
+4. Inspect `schema.graphql`, `src/processor.ts` and start hacking!
+
 For more details how to build and deploy a squid, see the [docs](https://docs.subsquid.io).
 
 ## Example
