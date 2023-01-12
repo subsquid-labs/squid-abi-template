@@ -243,13 +243,13 @@ class Codegen {
 
 runProgram(async function () {
     program
-        .requiredOption(`--address <contract>`)
-        .requiredOption(`--archive <url>`)
-        .option(`--abi <path>`)
-        .option(`-e, --event <name...>`)
-        .option(`-f, --function <name...>`)
-        .option(`--from <block>`)
-        .option(`--etherscan-api <url>`, `etherscan API to fetch contract ABI by a known address`)
+        .requiredOption(`--address <contract>`, `contract address`)
+        .requiredOption(`--archive <url>`, `Archive endpoint for indexing. See https://docs.subsquid.io/ for the list of supported networks and Archive endpoints`)
+        .option(`--abi <path>`, `path or URL to the contract ABI`)
+        .option(`-e, --event <name...>`, `one or multiple contract events to be indexed. '*' indexes all events defined in the ABI`)
+        .option(`-f, --function <name...>`, `one or multiple contract functions to be indexed. '*' indexes all functions defined in the ABI`)
+        .option(`--from <block>`, `start indexing from the given block`)
+        .option(`--etherscan-api <url>`, `an Etherscan API endpoint to fetch contract ABI by a known address. Default: https://api.etherscan.io/`)
 
     program.parse()
 
