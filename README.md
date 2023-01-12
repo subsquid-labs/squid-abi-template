@@ -22,11 +22,11 @@ Usage: ts-node generate/run.ts [options]
 Options:
   --address <contract>      contract address
   --archive <url>           archive endpoint 
-  --abi <path>              (optional) path to the abi file. If omitted, the Etherscan API is used
+  --abi <path>              (Optional) path or URL to the abi file. If omitted, the Etherscan API is used.
   -e, --event <name...>     one or multiple events to be indexed. '*' will index all events
   -f, --function <name...>. one or multiple contract functions to be indexed. '*' will index all functions
   --from <block>            start indexing from the given block. 
-  --etherscan-api <url>     (Optional) An Etherscan-compatible API to fetch contract ABI by a known address. Default: https://api.etherscan.io/
+  --etherscan-api <url>     (Optional) an Etherscan-compatible API to fetch contract ABI by a known address. Default: https://api.etherscan.io/
 ```
 
 3. Build and run the squid
