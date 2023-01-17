@@ -11,10 +11,10 @@
     "generate": "npx ts-node generate/run.ts"
   },
   "dependencies": {
-    "@subsquid/evm-processor": "^0.2.2",
-    "@subsquid/graphql-server": "3.2.4",
+    "@subsquid/evm-processor": "^0.2.4",
+    "@subsquid/graphql-server": "3.3.0",
     "@subsquid/typeorm-migration": "0.1.4",
-    "@subsquid/typeorm-store": "0.1.5",
+    "@subsquid/typeorm-store": "0.2.0",
     "@subsquid/util-internal-json": "^0.2.0",
     "dotenv": "^16.0.0",
     "ethers": "^5.7.2",
