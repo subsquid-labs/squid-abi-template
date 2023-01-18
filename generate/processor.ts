@@ -1,257 +1,309 @@
-import {FileOutput} from '@subsquid/util-internal-code-printer'
+import {OutDir, Output} from '@subsquid/util-internal-code-printer'
+
 import {SquidFragment} from './interfaces'
 
 export class ProcessorCodegen {
-    private out: FileOutput
-
+    private outDir: OutDir
     constructor(
         private options: {
             address: string
             archive: string
-            typegenFile: string
-            events: Record<string, SquidFragment>
-            functions: Record<string, SquidFragment>
+            typegenFileName: string
+            events: SquidFragment[]
+            functions: SquidFragment[]
             from?: number
         }
     ) {
-        this.out = new FileOutput(`./src/processor.ts`)
+        this.outDir = new OutDir(`./src`)
     }
 
     generate() {
-        this.importModels()
-        this.out.line(`import {Store, TypeormDatabase} from '@subsquid/typeorm-store'`)
-        this.out.line(
-            `import {EvmBatchProcessor, EvmBlock, BatchProcessorItem, BatchProcessorLogItem, BatchHandlerContext, BatchProcessorTransactionItem} ` +
+        this.generateProcessor()
+        this.outDir.add(`util.ts`, [__dirname, './support/util.ts'])
+    }
+
+    private generateProcessor() {
+        let out = this.outDir.file(`processor.ts`)
+        out.line(`import * as abi from './abi/${this.options.typegenFileName}'`)
+        this.importModels(out)
+        out.line(`import {Store, TypeormDatabase} from '@subsquid/typeorm-store'`)
+        out.line(
+            `import {EvmBatchProcessor, BatchProcessorItem, BatchProcessorLogItem, BatchHandlerContext, BatchProcessorTransactionItem} ` +
                 `from '@subsquid/evm-processor'`
         )
-        this.out.line(`import * as abi from './abi/${this.options.typegenFile}'`)
-        this.out.line()
-        this.out.line(`const processor = new EvmBatchProcessor()`)
-        this.out.indentation(() => {
-            this.out.line(`.setDataSource({`)
-            this.out.indentation(() => {
-                this.out.line(`archive: '${this.options.archive}',`)
+        out.line(`import {normalize} from './util'`)
+        out.line()
+        out.line(`const processor = new EvmBatchProcessor()`)
+        out.indentation(() => {
+            out.line(`.setDataSource({`)
+            out.indentation(() => {
+                out.line(`archive: '${this.options.archive}',`)
             })
-            this.out.line(`})`)
+            out.line(`})`)
 
             if (this.options.from != null) {
-                this.out.line(`.setBlockRange({`)
-                this.out.indentation(() => {
-                    this.out.line(`from: ${this.options.from}`)
+                out.line(`.setBlockRange({`)
+                out.indentation(() => {
+                    out.line(`from: ${this.options.from}`)
                 })
-                this.out.line(`})`)
+                out.line(`})`)
             }
 
-            if (this.options.events) {
-                this.printEvmLogSubscribe(this.options.address, Object.keys(this.options.events))
+            if (this.hasEvents()) {
+                this.printEvmLogSubscribe(out, this.options.address, this.options.events)
             }
-            if (this.options.functions) {
-                this.printTransactionSubscribe(this.options.address, Object.keys(this.options.functions))
+            if (this.hasFunctions()) {
+                this.printTransactionSubscribe(out, this.options.address, this.options.functions)
             }
         })
-        this.out.line()
-        this.out.line(`processor.run(new TypeormDatabase(), async (ctx) => {`)
-        this.out.indentation(() => {
-            this.out.line(`let events: EvmEvent[] = []`)
-            this.out.line(`let functions: EvmFunction[] = []`)
-            this.out.line(`let transactions: Transaction[] = []`)
-            this.out.line(`let blocks: Block[] = []`)
+        out.line()
+        this.printEntityUnionType(out)
+        out.line()
+        out.line(`processor.run(new TypeormDatabase(), async (ctx) => {`)
+        out.indentation(() => {
+            if (this.hasEvents()) {
+                out.line(`let events: Record<string, SquidEventEntity[]> = {}`)
+            }
+            if (this.hasFunctions()) {
+                out.line(`let functions: Record<string, SquidFunctionEntity[]> = {}`)
+            }
+            out.line(`let transactions: Transaction[] = []`)
+            out.line(`let blocks: Block[] = []`)
 
-            this.out.block(`for (let {header: block, items} of ctx.blocks)`, () => {
-                this.out.line(`let b = new Block({`)
-                this.out.indentation(() => {
-                    this.out.line(`id: block.id,`)
-                    this.out.line(`number: block.height,`)
-                    this.out.line(`timestamp: new Date(block.timestamp),`)
+            out.block(`for (let {header: block, items} of ctx.blocks)`, () => {
+                out.line(`let b = new Block({`)
+                out.indentation(() => {
+                    out.line(`id: block.id,`)
+                    out.line(`number: block.height,`)
+                    out.line(`timestamp: new Date(block.timestamp),`)
                 })
-                this.out.line(`})`)
-                this.out.line(`let blockTransactions = new Map<string, Transaction>()`)
-                this.out.block(`for (let item of items)`, () => {
-                    this.out.line(`if (item.address !== '${this.options.address}') continue`)
-                    this.out.line(`let it: EvmEvent | EvmFunction | undefined`)
-                    this.out.block(`switch (item.kind)`, () => {
-                        if (this.options.events) {
-                            this.out.line(`case 'evmLog':`)
-                            this.out.indentation(() => {
-                                this.out.line(`it = parseEvmLog(ctx, item)`)
-                                this.out.line(`if (it) events.push(it)`)
-                                this.out.line(`break`)
-                            })
-                        }
-                        if (this.options.functions) {
-                            this.out.line(`case 'transaction':`)
-                            this.out.indentation(() => {
-                                this.out.line(`it = parseTransaction(ctx, item)`)
-                                this.out.line(`if (it) functions.push(it)`)
-                                this.out.line(`break`)
-                            })
-                        }
-                        this.out.line(`default:`)
-                        this.out.indentation(() => this.out.line(`continue`))
-                    })
-                    this.out.block(`if (it)`, () => {
-                        this.out.line(`let t = blockTransactions.get(item.transaction.id)`)
-                        this.out.block(`if (!t)`, () => {
-                            this.out.line(`t = new Transaction({`)
-                            this.out.indentation(() => {
-                                this.out.line(`id: item.transaction.id,`)
-                                this.out.line(`hash: item.transaction.hash,`)
-                                this.out.line(`contract: item.transaction.to,`)
-                                this.out.line(`block: b,`)
-                            })
-                            this.out.line(`})`)
-                            this.out.line(`blockTransactions.set(t.id, t)`)
+                out.line(`})`)
+                out.line(`let blockTransactions = new Map<string, Transaction>()`)
+                out.block(`for (let item of items)`, () => {
+                    out.line(`if (item.address !== '${this.options.address}') continue`)
+                    if (this.hasEvents() || this.hasFunctions()) {
+                        out.line(`let it: SquidEntity | undefined`)
+                        out.block(`switch (item.kind)`, () => {
+                            if (this.hasEvents()) {
+                                out.line(`case 'evmLog':`)
+                                out.indentation(() => {
+                                    out.line(`it = parseEvmLog(ctx, item)`)
+                                    out.block(`if (it)`, () => {
+                                        out.line(`if (events[it.name] == null) events[it.name] = []`)
+                                        out.line(`events[it.name].push(it)`)
+                                    })
+                                    out.line(`break`)
+                                })
+                            }
+                            if (this.hasFunctions()) {
+                                out.line(`case 'transaction':`)
+                                out.indentation(() => {
+                                    out.line(`it = parseTransaction(ctx, item)`)
+                                    out.block(`if (it)`, () => {
+                                        out.line(`if (functions[it.name] == null) functions[it.name] = []`)
+                                        out.line(`functions[it.name].push(it)`)
+                                    })
+                                    out.line(`break`)
+                                })
+                            }
+                            out.line(`default:`)
+                            out.indentation(() => out.line(`continue`))
                         })
-                        this.out.line(`it.transaction = t`)
-                        this.out.line(`it.block = b`)
-                    })
-                })
-                this.out.block(`if (blockTransactions.size > 0)`, () => {
-                    this.out.line(`blocks.push(b)`)
-                    this.out.line(`transactions.push(...blockTransactions.values())`)
-                })
-            })
-            this.out.line(`await ctx.store.save(blocks)`)
-            this.out.line(`await ctx.store.save(transactions)`)
-            this.out.line(`await ctx.store.save(functions)`)
-            this.out.line(`await ctx.store.save(events)`)
-        })
-        this.out.line(`})`)
-        this.out.line()
-        this.out.line(`type Item = BatchProcessorItem<typeof processor>`)
-        this.out.line(`type Context = BatchHandlerContext<Store, Item>`)
-        if (this.options.events) {
-            this.out.line()
-            this.printEventsParser(this.options.events)
-        }
-        if (this.options.functions) {
-            this.out.line()
-            this.printFunctionsParser(this.options.functions)
-        }
-        this.out.line()
-
-        this.out.write()
-    }
-
-    private printEvmLogSubscribe(address: string, events: string[]) {
-        this.out.line(`.addLog('${address}', {`)
-        this.out.indentation(() => {
-            this.out.line(`filter: [`)
-            this.out.indentation(() => {
-                this.out.line(`[`)
-                this.out.indentation(() => {
-                    for (let e of events) {
-                        this.out.line(`abi.events['${e}'].topic,`)
+                        out.block(`if (it)`, () => {
+                            out.line(`let t = blockTransactions.get(item.transaction.id)`)
+                            out.block(`if (!t)`, () => {
+                                out.line(`t = new Transaction({`)
+                                out.indentation(() => {
+                                    out.line(`id: item.transaction.id,`)
+                                    out.line(`hash: item.transaction.hash,`)
+                                    out.line(`contract: item.transaction.to,`)
+                                    out.line(`block: b,`)
+                                })
+                                out.line(`})`)
+                                out.line(`blockTransactions.set(t.id, t)`)
+                            })
+                            out.line(`it.transaction = t`)
+                            out.line(`it.block = b`)
+                        })
                     }
                 })
-                this.out.line(`],`)
-            })
-            this.out.line(`],`)
-            this.out.line(`data: {`)
-            this.out.indentation(() => {
-                this.out.line(`evmLog: {`)
-                this.out.indentation(() => {
-                    this.out.line(`topics: true,`)
-                    this.out.line(`data: true,`)
+                out.block(`if (blockTransactions.size > 0)`, () => {
+                    out.line(`blocks.push(b)`)
+                    out.line(`transactions.push(...blockTransactions.values())`)
                 })
-                this.out.line(`},`)
-                this.out.line(`transaction: {`)
-                this.out.indentation(() => {
-                    this.out.line(`hash: true,`)
-                })
-                this.out.line(`},`)
             })
-            this.out.line(`} as const,`)
+            out.line(`await ctx.store.save(blocks)`)
+            out.line(`await ctx.store.save(transactions)`)
+            if (this.hasFunctions()) {
+                out.block(`for (let f in functions)`, () => {
+                    out.line(`await ctx.store.save(functions[f])`)
+                })
+            }
+            if (this.hasEvents()) {
+                out.block(`for (let e in events)`, () => {
+                    out.line(`await ctx.store.save(events[e])`)
+                })
+            }
         })
-        this.out.line(`})`)
+        out.line(`})`)
+        out.line()
+        out.line(`type Item = BatchProcessorItem<typeof processor>`)
+        out.line(`type Context = BatchHandlerContext<Store, Item>`)
+        if (this.hasEvents()) {
+            out.line()
+            this.printEventsParser(out, this.options.events)
+        }
+        if (this.hasFunctions()) {
+            out.line()
+            this.printFunctionsParser(out, this.options.functions)
+        }
+
+        return out.write()
     }
 
-    private printTransactionSubscribe(address: string, functions: string[]) {
-        this.out.line(`.addTransaction('${address}', {`)
-        this.out.indentation(() => {
-            this.out.line(`sighash: [`)
-            this.out.indentation(() => {
+    private printEvmLogSubscribe(out: Output, address: string, events: SquidFragment[]) {
+        out.line(`.addLog('${address}', {`)
+        out.indentation(() => {
+            out.line(`filter: [`)
+            out.indentation(() => {
+                out.line(`[`)
+                out.indentation(() => {
+                    for (let e of events) {
+                        out.line(`abi.events['${e.name}'].topic,`)
+                    }
+                })
+                out.line(`],`)
+            })
+            out.line(`],`)
+            out.line(`data: {`)
+            out.indentation(() => {
+                out.line(`evmLog: {`)
+                out.indentation(() => {
+                    out.line(`topics: true,`)
+                    out.line(`data: true,`)
+                })
+                out.line(`},`)
+                out.line(`transaction: {`)
+                out.indentation(() => {
+                    out.line(`hash: true,`)
+                })
+                out.line(`},`)
+            })
+            out.line(`} as const,`)
+        })
+        out.line(`})`)
+    }
+
+    private printTransactionSubscribe(out: Output, address: string, functions: SquidFragment[]) {
+        out.line(`.addTransaction('${address}', {`)
+        out.indentation(() => {
+            out.line(`sighash: [`)
+            out.indentation(() => {
                 for (let t of functions) {
-                    this.out.line(`abi.functions['${t}'].sighash,`)
+                    out.line(`abi.functions['${t.name}'].sighash,`)
                 }
             })
-            this.out.line(`],`)
-            this.out.line(`data: {`)
-            this.out.indentation(() => {
-                this.out.line(`transaction: {`)
-                this.out.indentation(() => {
-                    this.out.line(`hash: true,`)
-                    this.out.line(`input: true,`)
+            out.line(`],`)
+            out.line(`data: {`)
+            out.indentation(() => {
+                out.line(`transaction: {`)
+                out.indentation(() => {
+                    out.line(`hash: true,`)
+                    out.line(`input: true,`)
                 })
-                this.out.line(`},`)
+                out.line(`},`)
             })
-            this.out.line(`} as const,`)
+            out.line(`} as const,`)
         })
-        this.out.line(`})`)
+        out.line(`})`)
     }
 
-    private printEventsParser(events: Record<string, SquidFragment>) {
-        this.out.line(
-            `function parseEvmLog(ctx: Context, item: BatchProcessorLogItem<typeof processor>): EvmEvent | undefined {`
+    private printEventsParser(out: Output, events: SquidFragment[]) {
+        if (Object.keys(events).length == 0) return
+
+        out.line(
+            `function parseEvmLog(ctx: Context, item: BatchProcessorLogItem<typeof processor>): SquidEventEntity | undefined {`
         )
-        this.out.indentation(() => {
-            this.out.line(`switch (item.evmLog.topics[0]) {`)
-            this.out.indentation(() => {
-                for (let e in events) {
-                    let fragment = events[e]
-                    this.out.block(`case abi.events['${e}'].topic:`, () => {
-                        this.out.line(`let e = abi.events['${e}'].decode(item.evmLog)`)
-                        this.out.line(`return new ${fragment.entityName}({`)
-                        this.out.indentation(() => {
-                            this.out.line(`id: item.evmLog.id,`)
-                            this.out.line(`name: '${e}',`)
-                            for (let i = 0; i < fragment.params.length; i++) {
-                                this.out.line(`${fragment.params[i].name}: e[${i}],`)
+        out.indentation(() => {
+            out.line(`switch (item.evmLog.topics[0]) {`)
+            out.indentation(() => {
+                for (let e of events) {
+                    out.block(`case abi.events['${e.name}'].topic:`, () => {
+                        out.line(`let e = normalize(abi.events['${e.name}'].decode(item.evmLog))`)
+                        out.line(`return new ${e.entityName}({`)
+                        out.indentation(() => {
+                            out.line(`id: item.evmLog.id,`)
+                            out.line(`name: '${e.name}',`)
+                            for (let i = 0; i < e.params.length; i++) {
+                                out.line(`${e.params[i].name}: e[${i}],`)
                             }
                         })
-                        this.out.line(`})`)
-                        this.out.line(`break`)
+                        out.line(`})`)
                     })
                 }
             })
-            this.out.line(`}`)
+            out.line(`}`)
         })
-        this.out.line(`}`)
+        out.line(`}`)
     }
 
-    private printFunctionsParser(functions: Record<string, SquidFragment>) {
-        this.out.line(
-            `function parseTransaction(ctx: Context, item: BatchProcessorTransactionItem<typeof processor>): EvmFunction | undefined  {`
+    private printFunctionsParser(out: Output, functions: SquidFragment[]) {
+        if (Object.keys(functions).length == 0) return
+
+        out.line(
+            `function parseTransaction(ctx: Context, item: BatchProcessorTransactionItem<typeof processor>): SquidFunctionEntity | undefined  {`
         )
-        this.out.indentation(() => {
-            this.out.line(`switch (item.transaction.input.slice(0, 10)) {`)
-            this.out.indentation(() => {
-                for (let f in functions) {
-                    let fragment = functions[f]
-                    this.out.block(`case abi.functions['${f}'].sighash:`, () => {
-                        this.out.line(`return new ${fragment.entityName}({`)
-                        this.out.indentation(() => {
-                            this.out.line(`id: item.transaction.id,`)
-                            this.out.line(`name: '${f}',`)
-                            for (let i = 0; i < fragment.params.length; i++) {
-                                this.out.line(`${fragment.params[i].name}: e[${i}],`)
+        out.indentation(() => {
+            out.line(`switch (item.transaction.input.slice(0, 10)) {`)
+            out.indentation(() => {
+                for (let f of functions) {
+                    out.block(`case abi.functions['${f.name}'].sighash:`, () => {
+                        out.line(`let f = normalize(abi.functions['${f.name}'].decode(item.transaction.input))`)
+                        out.line(`return new ${f.entityName}({`)
+                        out.indentation(() => {
+                            out.line(`id: item.transaction.id,`)
+                            out.line(`name: '${f.name}',`)
+                            for (let i = 0; i < f.params.length; i++) {
+                                out.line(`${f.params[i].name}: f[${i}],`)
                             }
                         })
-                        this.out.line(`})`)
-                        this.out.line(`break`)
+                        out.line(`})`)
                     })
                 }
             })
-            this.out.line(`}`)
+            out.line(`}`)
         })
-        this.out.line(`}`)
+        out.line(`}`)
     }
 
-    private importModels() {
+    private importModels(out: Output) {
         let eventModels = Object.values(this.options.events).map((f) => f.entityName)
-        let functionModels = Object.values(this.options.events).map((f) => f.entityName)
-        this.out.line(
-            `import {Transaction, Block, ${eventModels.join(`, `)}, ${functionModels.join(`, `)}} from './model'`
-        )
+        let functionModels = Object.values(this.options.functions).map((f) => f.entityName)
+        out.line(`import {${[`Transaction`, `Block`, ...eventModels, ...functionModels].join(`, `)}} from './model'`)
+    }
+
+    private printEntityUnionType(out: Output) {
+        let models: string[] = []
+        if (this.hasEvents()) {
+            let eventModels = Object.values(this.options.events).map((f) => f.entityName)
+            out.line(`type SquidEventEntity = ${eventModels.join(` | `)}`)
+            models.push(`SquidEventEntity`)
+        }
+        if (this.hasFunctions()) {
+            let functionModels = Object.values(this.options.functions).map((f) => f.entityName)
+            out.line(`type SquidFunctionEntity = ${functionModels.join(` | `)}`)
+            models.push(`SquidFunctionEntity`)
+        }
+        if (models.length > 0) {
+            out.line(`type SquidEntity = ${models.join(` | `)}`)
+        }
+    }
+
+    private hasEvents() {
+        return this.options.events.length > 0
+    }
+
+    private hasFunctions() {
+        return this.options.functions.length > 0
     }
 }

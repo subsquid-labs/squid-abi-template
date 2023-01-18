@@ -13,6 +13,7 @@ export interface SquidFragmentParam {
 }
 
 export interface SquidFragment {
+    name: string
     entityName: string
     params: SquidFragmentParam[]
 }

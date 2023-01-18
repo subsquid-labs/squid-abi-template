@@ -1,11 +1,15 @@
-import {runProgram} from '@subsquid/util-internal'
-import {execSync} from 'child_process'
-import {program} from 'commander'
-import assert from 'assert'
-import path from 'path'
 import {SquidFragment, SquidFragmentParam, TypegenOutput} from './interfaces'
-import {toEntityName, getGqlType} from './util'
+
 import {ProcessorCodegen} from './processor'
+import {SchemaCodegen} from './schema'
+import assert from 'assert'
+import {ethers} from 'ethers'
+import {execSync} from 'child_process'
+import {getType as getTsType} from '@subsquid/evm-typegen/lib/util/types'
+import path from 'path'
+import {program} from 'commander'
+import {runProgram} from '@subsquid/util-internal'
+import {toCamelCase} from '@subsquid/util-naming'
 
 runProgram(async function () {
     program
@@ -62,28 +66,42 @@ runProgram(async function () {
         assert(from >= 0)
     }
 
+    new SchemaCodegen({
+        events,
+        functions,
+    }).generate()
+
+    execSync(`npx squid-typeorm-codegen`, {stdio: `inherit`})
+
     new ProcessorCodegen({
         address: opts.address.toLowerCase(),
         archive: opts.archive,
-        typegenFile,
+        typegenFileName,
         events,
         functions,
         from,
     }).generate()
 })
 
-function getSquidEvents(typegenFile: TypegenOutput, names: string[]): Record<string, SquidFragment> {
+function getSquidEvents(typegenFile: TypegenOutput, names: string[]): SquidFragment[] {
     let abiInterface = typegenFile.abi
+    let events = typegenFile.events
 
-    let events: Record<string, SquidFragment> = {}
+    if (names.includes(`*`)) {
+        names = Object.keys(events)
+    }
+
+    let fragments: SquidFragment[] = []
     for (let name of names) {
         let fragment = typegenFile.events[name]?.fragment
         assert(fragment != null, `Event "${name}" doesn't exist for this contract`)
 
         let entityName = toEntityName(fragment.name)
-        let overloads = Object.values(abiInterface.events).filter((f) => f.name === fragment.name)
+        let overloads = Object.values(abiInterface.functions).filter((f) => toEntityName(f.name) === entityName)
         if (overloads.length > 1) {
-            let num = overloads.findIndex((f) => f.inputs.every((i, n) => i.name === fragment.inputs[n].name))
+            let num = overloads.findIndex(
+                (f) => f.name === fragment.name && f.inputs.every((i, n) => i.name === fragment.inputs[n].name)
+            )
             entityName += num
         }
         entityName += `Event`
@@ -98,27 +116,35 @@ function getSquidEvents(typegenFile: TypegenOutput, names: string[]): Record<str
             })
         }
 
-        events[name] = {
+        fragments.push({
+            name,
             entityName,
             params,
-        }
+        })
     }
 
-    return events
+    return fragments
 }
 
-function getSquidFunctions(typegenFile: TypegenOutput, names: string[]): Record<string, SquidFragment> {
+function getSquidFunctions(typegenFile: TypegenOutput, names: string[]): SquidFragment[] {
     let abiInterface = typegenFile.abi
+    let functions = typegenFile.functions
 
-    let functions: Record<string, SquidFragment> = {}
+    if (names.includes(`*`)) {
+        names = Object.keys(functions)
+    }
+
+    let fragments: SquidFragment[] = []
     for (let name of names) {
-        let fragment = typegenFile.functions[name]?.fragment
+        let fragment = functions[name]?.fragment
         assert(fragment != null, `Function "${name}" doesn't exist for this contract`)
 
         let entityName = toEntityName(fragment.name)
-        let overloads = Object.values(abiInterface.functions).filter((f) => f.name === fragment.name)
+        let overloads = Object.values(abiInterface.functions).filter((f) => toEntityName(f.name) === entityName)
         if (overloads.length > 1) {
-            let num = overloads.findIndex((f) => f.inputs.every((i, n) => i.name === fragment.inputs[n].name))
+            let num = overloads.findIndex(
+                (f) => f.name === fragment.name && f.inputs.every((i, n) => i.name === fragment.inputs[n].name)
+            )
             entityName += num
         }
         entityName += `Function`
@@ -133,11 +159,36 @@ function getSquidFunctions(typegenFile: TypegenOutput, names: string[]): Record<
             })
         }
 
-        functions[name] = {
+        fragments.push({
+            name,
             entityName,
             params,
-        }
+        })
     }
 
-    return functions
+    return fragments
+}
+
+export function getGqlType(param: ethers.utils.ParamType): string {
+    let tsType = getTsType(param)
+    return tsTypeToGqlType(tsType)
+}
+
+function tsTypeToGqlType(type: string): string {
+    if (type === 'string') {
+        return 'String'
+    } else if (type === 'boolean') {
+        return 'Bool'
+    } else if (type === 'number') {
+        return 'Int'
+    } else if (type === 'ethers.BigNumber') {
+        return 'BigInt'
+    } else {
+        return 'JSON'
+    }
+}
+
+export function toEntityName(name: string) {
+    let camelCased = toCamelCase(name)
+    return camelCased.slice(0, 1).toUpperCase() + camelCased.slice(1)
 }

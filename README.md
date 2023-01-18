@@ -57,7 +57,7 @@ npm run generate -- \
 --event NewGravatar \
 --event UpdatedGravatar \
 --function createGravatar \
---from 10000000
+--from 6000000
 ```
 
 <img width="1156" alt="Screenshot 2023-01-10 at 13 03 16" src="https://user-images.githubusercontent.com/8627422/211521452-610e90b6-cb24-4e16-a852-15c8d7f11c28.png">
