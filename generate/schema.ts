@@ -24,7 +24,7 @@ export class SchemaCodegen {
             this.out.line(`id: ID!`)
             this.out.line(`hash: String! @index`)
             this.out.line(`block: Block!`)
-            this.out.line(`contract: String!`)
+            this.out.line(`contract: String`)
         })
         this.out.line()
         this.out.block(`interface Event @query`, () => {
