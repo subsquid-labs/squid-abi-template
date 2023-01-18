@@ -56,7 +56,6 @@ export class SchemaCodegen {
             this.out.line(`transaction: Transaction!`)
             this.out.line(`name: String!`)
         })
-        this.out.line()
         for (let f of this.options.functions) {
             this.out.line()
             this.out.block(`type ${f.entityName} implements Function @entity`, () => {
