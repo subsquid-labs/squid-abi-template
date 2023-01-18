@@ -1,7 +1,5 @@
-import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_, OneToMany as OneToMany_} from "typeorm"
+import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, Index as Index_, ManyToOne as ManyToOne_} from "typeorm"
 import {Block} from "./block.model"
-import {EvmFunction} from "./evmFunction.model"
-import {EvmEvent} from "./evmEvent.model"
 
 @Entity_()
 export class Transaction {
@@ -12,6 +10,7 @@ export class Transaction {
     @PrimaryColumn_()
     id!: string
 
+    @Index_()
     @Column_("text", {nullable: false})
     hash!: string
 
@@ -19,10 +18,6 @@ export class Transaction {
     @ManyToOne_(() => Block, {nullable: true})
     block!: Block
 
-    @Column_("text", {nullable: false})
-    contract!: string
-
-
-    @OneToMany_(() => EvmEvent, e => e.transaction)
-    events!: EvmEvent[]
+    @Column_("text", {nullable: true})
+    contract!: string | undefined | null
 }

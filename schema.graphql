@@ -1,0 +1,627 @@
+type Block @entity {
+    id: ID!
+    number: Int! @index
+    timestamp: DateTime!
+    transactions: [Transaction] @derivedFrom(field: "block")
+}
+
+type Transaction @entity {
+    id: ID!
+    hash: String! @index
+    block: Block!
+    contract: String
+}
+
+interface Event @query {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String!
+}
+
+type ApprovalEvent implements Event @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String @index
+    arg1: String @index
+    arg2: BigInt @index
+}
+
+type ApprovalForAllEvent implements Event @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String @index
+    arg1: String @index
+    arg2: Boolean
+}
+
+type ContractUriEvent implements Event @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type LockEvent implements Event @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+}
+
+type RoleAdminChangedEvent implements Event @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String @index
+    arg1: String @index
+    arg2: String @index
+}
+
+type RoleGrantedEvent implements Event @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String @index
+    arg1: String @index
+    arg2: String @index
+}
+
+type RoleRevokedEvent implements Event @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String @index
+    arg1: String @index
+    arg2: String @index
+}
+
+type SecondarySaleFeeEvent implements Event @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String @index
+    arg1: BigInt
+}
+
+type TransferEvent implements Event @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String @index
+    arg1: String @index
+    arg2: BigInt @index
+}
+
+type UriEvent implements Event @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+}
+
+type UriAllEvent implements Event @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+interface Function @query {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String!
+}
+
+type CompositeCreatorRoleFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type DefaultAdminRoleFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type GovernanceRoleFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type MinterRoleFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type OperatorRoleFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type VersionFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type ApproveFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: BigInt
+}
+
+type BalanceOfFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+}
+
+type BatchFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: JSON
+    arg1: Boolean
+}
+
+type BurnFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+}
+
+type CompositeUriFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+}
+
+type ContractUriFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type DecimalsFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type DefaultTokenUriFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type Erc2665HandlerFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type ExistsFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+}
+
+type GetApprovedFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+}
+
+type GetRoleAdminFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+}
+
+type GetRoleMemberFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: BigInt
+}
+
+type GetRoleMemberCountFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+}
+
+type GetTransferFee0Function implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+}
+
+type GetTransferFee1Function implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+    arg1: String
+}
+
+type GlobalCompositeTokenUriBaseFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type GrantRoleFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: String
+}
+
+type HasRoleFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: String
+}
+
+type InitializeFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: String
+    arg2: String
+    arg3: String
+    arg4: String
+    arg5: Int
+    arg6: String
+    arg7: String
+    arg8: String
+}
+
+type InitializedFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type IsApprovedForAllFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: String
+}
+
+type IsProxyFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: String
+}
+
+type LockFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type LockedForeverFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type MintFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: String
+}
+
+type MintDefaultFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+}
+
+type NameFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type OriginalUriFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+}
+
+type OwnerOfFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+}
+
+type ProxyRegistryFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type RenounceRoleFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: String
+}
+
+type RevokeRoleFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: String
+}
+
+type RoyaltyInfoFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+    arg1: BigInt
+}
+
+type SafeTransferFrom0Function implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: String
+    arg2: BigInt
+}
+
+type SafeTransferFrom1Function implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: String
+    arg2: BigInt
+    arg3: String
+}
+
+type SecondarySaleFeeFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+}
+
+type SetApprovalForAllFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: Boolean
+}
+
+type SetContractUriFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+}
+
+type SetCustomCompositeTokenUriBaseFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+    arg1: String
+}
+
+type SetCustomTokenUriFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+    arg1: String
+}
+
+type SetDefaultTokenUriFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+}
+
+type SetErc2665HandlerFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+}
+
+type SetFeeFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: BigInt
+}
+
+type SetGlobalCompositeTokenUriBaseFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+}
+
+type SetProxyRegistryAddressFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+}
+
+type SetTransferListenerFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+}
+
+type SetUseCompositeTokenUriFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+    arg1: Boolean
+}
+
+type SupportsInterfaceFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+}
+
+type SymbolFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type TokenUriFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+}
+
+type TotalSupplyFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type TransferFromFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: String
+    arg2: BigInt
+}
+
+type TransferListenerFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+}
+
+type UriFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+}

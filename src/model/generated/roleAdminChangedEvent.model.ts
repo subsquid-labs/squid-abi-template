@@ -3,8 +3,8 @@ import {Block} from "./block.model"
 import {Transaction} from "./transaction.model"
 
 @Entity_()
-export class EvmEvent {
-    constructor(props?: Partial<EvmEvent>) {
+export class RoleAdminChangedEvent {
+    constructor(props?: Partial<RoleAdminChangedEvent>) {
         Object.assign(this, props)
     }
 
@@ -23,6 +23,15 @@ export class EvmEvent {
     @Column_("text", {nullable: false})
     name!: string
 
-    @Column_("jsonb", {nullable: false})
-    params!: unknown
+    @Index_()
+    @Column_("text", {nullable: true})
+    arg0!: string | undefined | null
+
+    @Index_()
+    @Column_("text", {nullable: true})
+    arg1!: string | undefined | null
+
+    @Index_()
+    @Column_("text", {nullable: true})
+    arg2!: string | undefined | null
 }
