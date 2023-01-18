@@ -1,0 +1,59 @@
+type Block @entity {
+    id: ID!
+    number: Int! @index
+    timestamp: DateTime!
+    transactions: [Transaction] @derivedFrom(field: "block")
+}
+
+type Transaction @entity {
+    id: ID!
+    hash: String! @index
+    block: Block!
+    contract: String!
+}
+
+interface Event @query {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String!
+}
+
+type NewGravatarEvent implements Event @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+    arg1: String
+    arg2: String
+    arg3: String
+}
+
+type UpdatedGravatarEvent implements Event @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: BigInt
+    arg1: String
+    arg2: String
+    arg3: String
+}
+
+interface Function @query {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String!
+}
+
+
+type CreateGravatarFunction implements Function @entity {
+    id: ID!
+    block: Block!
+    transaction: Transaction!
+    name: String! @index
+    arg0: String
+    arg1: String
+}

@@ -1,10 +1,11 @@
 import {Entity as Entity_, Column as Column_, PrimaryColumn as PrimaryColumn_, ManyToOne as ManyToOne_, Index as Index_} from "typeorm"
+import * as marshal from "./marshal"
 import {Block} from "./block.model"
 import {Transaction} from "./transaction.model"
 
 @Entity_()
-export class EvmEvent {
-    constructor(props?: Partial<EvmEvent>) {
+export class NewGravatarEvent {
+    constructor(props?: Partial<NewGravatarEvent>) {
         Object.assign(this, props)
     }
 
@@ -23,6 +24,15 @@ export class EvmEvent {
     @Column_("text", {nullable: false})
     name!: string
 
-    @Column_("jsonb", {nullable: false})
-    params!: unknown
+    @Column_("numeric", {transformer: marshal.bigintTransformer, nullable: true})
+    arg0!: bigint | undefined | null
+
+    @Column_("text", {nullable: true})
+    arg1!: string | undefined | null
+
+    @Column_("text", {nullable: true})
+    arg2!: string | undefined | null
+
+    @Column_("text", {nullable: true})
+    arg3!: string | undefined | null
 }
