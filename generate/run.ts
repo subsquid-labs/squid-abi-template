@@ -99,9 +99,7 @@ function getSquidEvents(typegenFile: TypegenOutput, names: string[]): SquidFragm
         let entityName = toEntityName(fragment.name)
         let overloads = Object.values(abiInterface.functions).filter((f) => toEntityName(f.name) === entityName)
         if (overloads.length > 1) {
-            let num = overloads.findIndex(
-                (f) => f.name === fragment.name && f.inputs.every((i, n) => i.name === fragment.inputs[n].name)
-            )
+            let num = overloads.findIndex((f) => f.format('sighash') === fragment.format('sighash'))
             entityName += num
         }
         entityName += `Event`
@@ -142,9 +140,7 @@ function getSquidFunctions(typegenFile: TypegenOutput, names: string[]): SquidFr
         let entityName = toEntityName(fragment.name)
         let overloads = Object.values(abiInterface.functions).filter((f) => toEntityName(f.name) === entityName)
         if (overloads.length > 1) {
-            let num = overloads.findIndex(
-                (f) => f.name === fragment.name && f.inputs.every((i, n) => i.name === fragment.inputs[n].name)
-            )
+            let num = overloads.findIndex((f) => f.format('sighash') === fragment.format('sighash'))
             entityName += num
         }
         entityName += `Function`
