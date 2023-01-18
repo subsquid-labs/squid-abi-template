@@ -48,7 +48,6 @@ interface Function @query {
     name: String!
 }
 
-
 type CreateGravatarFunction implements Function @entity {
     id: ID!
     block: Block!
