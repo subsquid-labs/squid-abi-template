@@ -178,7 +178,7 @@ function tsTypeToGqlType(type: string): string {
     if (type === 'string') {
         return 'String'
     } else if (type === 'boolean') {
-        return 'Bool'
+        return 'Boolean'
     } else if (type === 'number') {
         return 'Int'
     } else if (type === 'ethers.BigNumber') {
