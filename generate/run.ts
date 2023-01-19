@@ -18,6 +18,7 @@ runProgram(async function () {
             `--archive <url>`,
             `Archive endpoint for indexing. See https://docs.subsquid.io/ for the list of supported networks and Archive endpoints`
         )
+        .option(`--proxy <contract>`, `proxy address`)
         .option(`--abi <path>`, `path or URL to the contract ABI`)
         .option(
             `-e, --event <name...>`,
@@ -38,7 +39,8 @@ runProgram(async function () {
     let opts = program.opts() as {
         address: string
         archive: string
-        abi: string
+        proxy?: string
+        abi?: string
         event?: string[]
         function?: string[]
         from?: string
@@ -74,7 +76,7 @@ runProgram(async function () {
     execSync(`npx squid-typeorm-codegen`, {stdio: `inherit`})
 
     new ProcessorCodegen({
-        address: opts.address.toLowerCase(),
+        address: (opts.proxy || opts.address).toLowerCase(),
         archive: opts.archive,
         typegenFileName,
         events,
