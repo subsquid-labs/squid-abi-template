@@ -31,6 +31,7 @@ export class ProcessorCodegen {
             `import {EvmBatchProcessor, BatchProcessorItem, BatchProcessorLogItem, BatchHandlerContext, BatchProcessorTransactionItem} ` +
                 `from '@subsquid/evm-processor'`
         )
+        out.line(`import {toJSON} from '@subsquid/util-internal-json'`)
         out.line(`import {normalize} from './util'`)
         out.line()
         out.line(`const processor = new EvmBatchProcessor()`)
@@ -235,7 +236,11 @@ export class ProcessorCodegen {
                             out.line(`id: item.evmLog.id,`)
                             out.line(`name: '${e.name}',`)
                             for (let i = 0; i < e.params.length; i++) {
-                                out.line(`${e.params[i].name}: e[${i}],`)
+                                out.line(
+                                    `${e.params[i].name}: ${
+                                        e.params[i].schemaType === 'JSON' ? `toJSON(e[${i}])` : `e[${i}]`
+                                    },`
+                                )
                             }
                         })
                         out.line(`})`)
@@ -264,7 +269,9 @@ export class ProcessorCodegen {
                             out.line(`id: item.transaction.id,`)
                             out.line(`name: '${f.name}',`)
                             for (let i = 0; i < f.params.length; i++) {
-                                out.line(`${f.params[i].name}: f[${i}],`)
+                                out.line(`${f.params[i].name}: ${
+                                    f.params[i].schemaType === 'JSON' ? `toJSON(f[${i}])` : `f[${i}]`
+                                },`)
                             }
                         })
                         out.line(`})`)
