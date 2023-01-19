@@ -1,15 +1,17 @@
-import {FileOutput} from '@subsquid/util-internal-code-printer'
+import {FileOutput, OutDir} from '@subsquid/util-internal-code-printer'
 import {SquidFragment} from './interfaces'
 
 export class SchemaCodegen {
     private out: FileOutput
+
     constructor(
+        outDir: OutDir,
         private options: {
             events: SquidFragment[]
             functions: SquidFragment[]
         }
     ) {
-        this.out = new FileOutput(`./schema.graphql`)
+        this.out = outDir.file(`schema.graphql`)
     }
 
     generate() {
@@ -72,7 +74,6 @@ export class SchemaCodegen {
                 }
             })
         }
-
         this.out.write()
     }
 }
