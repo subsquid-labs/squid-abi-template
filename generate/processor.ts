@@ -34,6 +34,8 @@ export class ProcessorCodegen {
         out.line(`import {toJSON} from '@subsquid/util-internal-json'`)
         out.line(`import {normalize} from './util'`)
         out.line()
+        out.line(`const CONTRACT_ADDRESS = '${this.options.address}'`)
+        out.line()
         out.line(`const processor = new EvmBatchProcessor()`)
         out.indentation(() => {
             out.line(`.setDataSource({`)
@@ -51,7 +53,7 @@ export class ProcessorCodegen {
             }
 
             if (this.hasEvents()) {
-                this.printEvmLogSubscribe(out, this.options.address, this.options.events)
+                this.printEvmLogSubscribe(out, this.options.events)
             }
             if (this.hasFunctions()) {
                 this.printTransactionSubscribe(out, this.options.address, this.options.functions)
@@ -81,7 +83,7 @@ export class ProcessorCodegen {
                 out.line(`})`)
                 out.line(`let blockTransactions = new Map<string, Transaction>()`)
                 out.block(`for (let item of items)`, () => {
-                    out.line(`if (item.address !== '${this.options.address}') continue`)
+                    out.line(`if (item.address !== CONTRACT_ADDRESS) continue`)
                     if (this.hasEvents() || this.hasFunctions()) {
                         out.line(`let it: SquidEntity | undefined`)
                         out.block(`switch (item.kind)`, () => {
@@ -162,8 +164,8 @@ export class ProcessorCodegen {
         return out.write()
     }
 
-    private printEvmLogSubscribe(out: Output, address: string, events: SquidFragment[]) {
-        out.line(`.addLog('${address}', {`)
+    private printEvmLogSubscribe(out: Output, events: SquidFragment[]) {
+        out.line(`.addLog(CONTRACT_ADDRESS, {`)
         out.indentation(() => {
             out.line(`filter: [`)
             out.indentation(() => {
@@ -196,7 +198,7 @@ export class ProcessorCodegen {
     }
 
     private printTransactionSubscribe(out: Output, address: string, functions: SquidFragment[]) {
-        out.line(`.addTransaction('${address}', {`)
+        out.line(`.addTransaction(CONTRACT_ADDRESS, {`)
         out.indentation(() => {
             out.line(`sighash: [`)
             out.indentation(() => {
