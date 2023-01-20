@@ -14,7 +14,7 @@ cd my-abi-squid
 npm i
 ```
 
-2. Run `npm run generate` with the appropriate flags.
+2. Run `npx squid-gen-abi` with the appropriate flags.
 
 ```bash
 Usage: ts-node generate/run.ts [options]
@@ -32,9 +32,9 @@ Options:
 3. Build and run the squid
 
 ```bash
-make codegen
 npm run build
 make up
+make migration
 make process
 ```
 The indexing will start.
