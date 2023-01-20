@@ -51,7 +51,7 @@ For more details how to build and deploy a squid, see the [docs](https://docs.su
 ## Example
 
 ```bash
-npm run generate -- \
+npx squid-gen-abi \
 --address 0x2E645469f354BB4F5c8a05B3b30A929361cf77eC \
 --archive https://eth.archive.subsquid.io \
 --event NewGravatar \
