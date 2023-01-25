@@ -28,7 +28,6 @@
       },
       "migration": {
         "description": "Generate a DB migration matching the TypeORM entities",
-        "deps": ["down", "up", "migration:clean"],
         "cmd": ["squid-typeorm-migration", "generate"]
       },
       "migration:clean": {
