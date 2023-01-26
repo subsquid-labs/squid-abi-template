@@ -5,9 +5,14 @@
         "description": "delete all build artifacts",
         "cmd": ["npx", "--yes", "rimraf", "lib"]
       },
-      "squid-gen-abi": {
+      "generate": {
         "description": "Generate a squid from an ABI file",
         "cmd": ["squid-gen-abi"]
+      },
+      "squid-gen-abi": {
+        "description": "Generate a squid from an ABI file",
+        "cmd": ["squid-gen-abi"],
+        "hidden": true
       },
       "build": {
         "description": "Build the squid project",
@@ -26,10 +31,15 @@
         "description": "Apply the DB migrations",
         "cmd": ["squid-typeorm-migration", "apply"]
       },
-      "migration": {
+      "migration:generate": {
         "description": "Generate a DB migration matching the TypeORM entities",
         "deps": ["build"],
-        "cmd": ["squid-typeorm-migration", "generate"]
+        "cmd": ["squid-typeorm-migration", "generate"],
+      },
+      "migration": {
+        "deps": ["build"],
+        "cmd": ["squid-typeorm-migration", "generate"],
+        "hidden": true
       },
       "migration:clean": {
         "description": "Clean the migrations folder",
@@ -58,6 +68,14 @@
       "serve": {
         "description": "Start the GraphQL API server",
         "cmd": ["squid-graphql-server"]
+      },
+      "serve:prod": {
+        "description": "Start the GraphQL API server with caching and limits",
+        "cmd": ["squid-graphql-server", 
+          "--dumb-cache", "in-memory", 
+          "--dumb-cache-ttl", "1000", 
+          "--dumb-cache-size", "100", 
+          "--dumb-cache-max-age", "1000" ]
       },
       "bump": {
         "description": "Bump @subsquid packages to the latest versions",
