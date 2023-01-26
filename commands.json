@@ -1,11 +1,11 @@
 {
-    "$schema": "https://subsquid.io/schemas/commands.json",
+    "$schema": "https://cdn.subsquid.io/schemas/commands.json",
     "commands": {
       "clean": {
         "description": "delete all build artifacts",
         "cmd": ["rm", "-rf", "lib"]
       },
-      "abi-gen": {
+      "squid-gen-abi": {
         "description": "Generate a squid from an ABI file",
         "cmd": ["squid-gen-abi"]
       },
@@ -61,6 +61,10 @@
       "bump": {
         "description": "Bump @subsquid packages to the latest versions",
         "cmd": ["npx", "npm-check-updates", "--filter=/subsquid/", "--upgrade"]
+      },
+      "open": {
+        "description": "Open a local browser window",
+        "cmd": ["npx", "--yes", "opener"]
       }
     }
   }
