@@ -3,7 +3,7 @@
     "commands": {
       "clean": {
         "description": "delete all build artifacts",
-        "cmd": ["rm", "-rf", "lib"]
+        "cmd": ["npx", "--yes", "rimraf", "lib"]
       },
       "squid-gen-abi": {
         "description": "Generate a squid from an ABI file",
@@ -33,7 +33,7 @@
       },
       "migration:clean": {
         "description": "Clean the migrations folder",
-        "cmd": ["rm", "-rf", {"glob": "./db/migrations/*.js"}],
+        "cmd": ["npx", "--yes", "rimraf", "./db/migrations/*.js"],
         "hidden": true
       },
       "codegen": {
@@ -51,7 +51,7 @@
       },
       "process:prod": {
         "description": "Start the squid processor",
-        "deps": ["migrate"],
+        "deps": ["migration:apply"],
         "cmd": ["node", "lib/processor.js"],
         "hidden": true
       },
