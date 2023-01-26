@@ -49,7 +49,7 @@ make serve
 For more details how to build and deploy a squid, see the [docs](https://docs.subsquid.io).
 
 ## Example
-
+### Generate
 ```bash
 npx squid-gen-abi \
 --address 0x2E645469f354BB4F5c8a05B3b30A929361cf77eC \
@@ -59,6 +59,28 @@ npx squid-gen-abi \
 --function createGravatar \
 --from 6000000
 ```
-
-<img width="1156" alt="Screenshot 2023-01-10 at 13 03 16" src="https://user-images.githubusercontent.com/8627422/211521452-610e90b6-cb24-4e16-a852-15c8d7f11c28.png">
+### Explore
+```gql
+query MyQuery {
+  events(orderBy: block_timestamp_ASC) {
+    id
+    name
+    block {
+      number
+      timestamp
+    }
+    ... on NewGravatarEvent {
+      id0
+      imageUrl
+      owner
+    }
+    ... on UpdatedGravatarEvent {
+      id0
+      imageUrl
+      owner
+    }
+  }
+}
+```
+<img width="1000" alt="Example" src="https://user-images.githubusercontent.com/61732514/214889375-20cd1945-0124-4924-a1dd-3f1a07ddd6ab.png">
 
