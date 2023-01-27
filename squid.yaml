@@ -1,13 +1,14 @@
 manifestVersion: subsquid.io/v0.1
 name: abi-template
 version: 1
-description:
+description: |-
+  A squid indexer generated from an ABI template  
 build:
 
 deploy:
   addons:
     postgres:
   processor:
-    cmd: [ "sqd", "process:prod" ]
+    cmd: [ "node", "lib/processor" ]
   api:
-    cmd: [ "sqd", "serve:prod" ]
+    cmd: [ "npx", "squid-graphql-server", "--dumb-cache", "in-memory", "--dumb-cache-ttl", "1000", "--dumb-cache-size", "100", "--dumb-cache-max-age", "1000" ]
