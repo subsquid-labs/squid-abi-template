@@ -7,7 +7,7 @@
     {
       "groupName": "@subsquid",
       "matchPackagePatterns": [
-        "^@subsquid/"
+        "^@subsquid"
       ],
       "matchUpdateTypes": [
         "minor",
