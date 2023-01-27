@@ -1,15 +1,6 @@
 {
   "name": "squid-evm-template",
   "private": true,
-  "scripts": {
-    "build": "rm -rf lib && tsc",
-    "update": "npx npm-check-updates --filter /subsquid/ --upgrade && npm i -f",
-    "db:migrate": "npx squid-typeorm-migration apply",
-    "db:generate": "npx squid-typeorm-migration generate",
-    "squid-etl:start": "node lib/processor.js",
-    "squid-api:start": "npx squid-graphql-server",
-    "generate": "npx ts-node generate/run.ts"
-  },
   "dependencies": {
     "@subsquid/archive-registry": "^2.1.0",
     "@subsquid/evm-processor": "^0.2.4",
