@@ -1,6 +1,6 @@
 # Squid ABI template
 
-An experimental template is used to generate a squid indexing EVM logs and transactions of choice from a contract address. Supports automatic ABI lookups for public contracts using the Etherescan API
+An experimental template is used to generate a squid indexing EVM logs and transactions of choice from a contract address. Supports automatic ABI lookups for public contracts using the Etherscan API
 
 ## Usage
 
