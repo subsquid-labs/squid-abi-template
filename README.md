@@ -14,10 +14,10 @@ cd my-abi-squid
 npm i
 ```
 
-2. Run `npx squid-gen-abi` with the appropriate flags.
+2. Run `sqd generate` with the appropriate flags.
 
 ```bash
-Usage: ts-node generate/run.ts [options]
+Usage: sqd generate [options]
 
 Options:
   --address <contract>      contract address
@@ -32,10 +32,10 @@ Options:
 3. Build and run the squid
 
 ```bash
-npm run build
-make up
-make migration
-make process
+sqd build
+sqd up
+sqd migration:generate
+sqd process
 ```
 The indexing will start.
 
