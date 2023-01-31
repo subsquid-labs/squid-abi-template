@@ -2,13 +2,17 @@
 
 # Squid ABI template
 
-An experimental template is used to generate a squid indexing EVM logs and transactions of choice from a contract address. Supports automatic ABI lookups for public contracts using the Etherscan API
+An experimental template is used to generate a squid that indexes EVM logs and transactions of choice from a contract address. Supports automatic ABI lookups for public contracts using the Etherscan API
 
 ## Usage
 
-0. Install the [Squid CLI](https://docs.subsquid.io/squid-cli/)
+0. Install the [Squid CLI](https://docs.subsquid.io/squid-cli/):
 
-1. Init the template and install the dependcies
+```sh
+npm i -g @subsquid/cli
+```
+
+1. Init the template and install the dependencies
 
 ```bash
 sqd init my-abi-squid --template https://github.com/subsquid/squid-abi-template
@@ -48,7 +52,7 @@ make serve
 
 4. Inspect `schema.graphql`, `src/processor.ts` and start hacking!
 
-For more details how to build and deploy a squid, see the [docs](https://docs.subsquid.io).
+For more details on how to build and deploy a squid, see the [docs](https://docs.subsquid.io).
 
 ## Example
 ### Generate
