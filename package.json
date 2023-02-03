@@ -9,7 +9,7 @@
     "@subsquid/typeorm-store": "^0.2.0",
     "@subsquid/util-internal-json": "^0.2.0",
     "dotenv": "^16.0.0",
-    "ethers": "^5.7.2",
+    "ethers": "^6.0.0",
     "pg": "^8.7.3",
     "typeorm": "^0.3.6"
   },
