@@ -1,6 +1,9 @@
 {
   "name": "squid-evm-template",
   "private": true,
+  "scripts": {
+    "build": "rm -rf lib/ && tsc"
+  },
   "dependencies": {
     "@subsquid/archive-registry": "^2.1.0",
     "@subsquid/evm-processor": "^0.2.4",
