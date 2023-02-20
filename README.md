@@ -47,7 +47,7 @@ The indexing will start.
 
 In a separate window, start the GraphQL API server at `localhost:4350/graphql`:
 ```bash
-make serve
+sqd serve
 ```
 
 4. Inspect `schema.graphql`, `src/processor.ts` and start hacking!
