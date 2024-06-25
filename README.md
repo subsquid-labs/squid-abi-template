@@ -59,7 +59,7 @@ For more details on how to build and deploy a squid, see the [docs](https://docs
 ```bash
 npx squid-gen-abi \
 --address 0x2E645469f354BB4F5c8a05B3b30A929361cf77eC \
---archive https://eth.archive.subsquid.io \
+--archive https://v2.archive.subsquid.io/network/ethereum-mainnet \
 --event NewGravatar \
 --event UpdatedGravatar \
 --function createGravatar \
